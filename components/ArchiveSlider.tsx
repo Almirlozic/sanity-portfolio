@@ -55,9 +55,14 @@ const INTRO = {
 /** Mindst så mange kort i rækken, så den altid kan fylde skærmen og køre i ring. */
 const MIN_SLIDES = 10;
 
+/** Slår "Open project"-tilstanden på den fælles cursor til og fra. */
+const setCursorProject = (on: boolean) => {
+  if (on) document.documentElement.dataset.cursor = "project";
+  else delete document.documentElement.dataset.cursor;
+};
+
 export default function ArchiveSlider({ projects }: { projects: ProjectSummary[] }) {
   const root = useRef<HTMLDivElement>(null);
-  const cursor = useRef<HTMLDivElement>(null);
   // Mens detaljevisningen er åben, står rækken stille og ignorerer input.
   const paused = useRef(false);
   const [preview, setPreview] = useState<{
@@ -232,14 +237,10 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
         el.classList.add("is-pressed");
       };
       const onPointerMove = (e: PointerEvent) => {
-        cursorTo(e.clientX, e.clientY);
-        // Vis "Træk" kun, når musen er over rækken (ikke over menuen).
-        const over = !paused.current && (drag.active || el.contains(e.target as Node));
-        if (over !== cursorVisible) {
-          cursorVisible = over;
-          if (over) showCursor();
-          else hideCursor();
-        }
+        // Over et projekt bliver den fælles cursor større og viser "Open project" (SiteCursor).
+        const onProject =
+          !paused.current && !drag.active && !!(e.target as Element).closest?.(".slide-link");
+        setCursorProject(onProject);
         if (!drag.active) return;
         const dx = e.clientX - drag.lastX;
         drag.lastX = e.clientX;
@@ -267,28 +268,12 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
         if (e.key === "ArrowLeft") state.target = Math.round(state.target / step - 1) * step;
       };
 
-      // ---------- "Træk"-cursor ----------
-      const xTo = cursor.current ? gsap.quickTo(cursor.current, "x", { duration: 0.5, ease: "power3" }) : null;
-      const yTo = cursor.current ? gsap.quickTo(cursor.current, "y", { duration: 0.5, ease: "power3" }) : null;
-      const cursorTo = (x: number, y: number) => {
-        xTo?.(x);
-        yTo?.(y);
-      };
-      let cursorVisible = false;
-      const showCursor = () => gsap.to(cursor.current, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "power3.out" });
-      const hideCursor = () => gsap.to(cursor.current, { autoAlpha: 0, scale: 0.5, duration: 0.3, ease: "power3.out" });
-
       el.addEventListener("wheel", onWheel, { passive: false });
       el.addEventListener("pointerdown", onPointerDown);
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
       window.addEventListener("pointercancel", onPointerUp);
       el.addEventListener("click", onClickCapture, true);
-      const onLeaveWindow = () => {
-        cursorVisible = false;
-        hideCursor();
-      };
-      document.documentElement.addEventListener("pointerleave", onLeaveWindow);
       window.addEventListener("keydown", onKey);
 
       const resizeObserver = new ResizeObserver(measure);
@@ -303,7 +288,7 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
         window.removeEventListener("pointerup", onPointerUp);
         window.removeEventListener("pointercancel", onPointerUp);
         el.removeEventListener("click", onClickCapture, true);
-        document.documentElement.removeEventListener("pointerleave", onLeaveWindow);
+        setCursorProject(false);
         window.removeEventListener("keydown", onKey);
       };
     },
@@ -316,7 +301,7 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
     // Vent, til introen er færdig.
     if (paused.current || !slide || root.current?.hasAttribute("data-intro")) return;
     paused.current = true;
-    gsap.to(cursor.current, { autoAlpha: 0, scale: 0.5, duration: 0.3, ease: "power3.out", overwrite: true });
+    setCursorProject(false);
     setPreview({ project, slide });
   };
 
@@ -389,7 +374,6 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
             </li>
           ))}
         </ul>
-        <div ref={cursor} className="drag-cursor" aria-hidden />
       </div>
       {preview && (
         <ProjectPreview

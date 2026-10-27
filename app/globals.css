@@ -476,29 +476,63 @@ button:hover .roll-inner {
   pointer-events: none;
 }
 
-/* "Træk"-cursoren der følger musen. */
-.drag-cursor {
+/* ---------- Cursor (SiteCursor) ---------- */
+/* Den runde cursor der følger musen på hele sitet. */
+.site-cursor {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 70;
+  /* Over menuen og detaljevisningen. */
+  z-index: 100;
   width: 18px;
   height: 18px;
   margin: -9px 0 0 -9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* --fg følger tids-temaet: mørk kant på lyst site, lys kant på mørkt. */
+  border: 1px solid var(--fg);
   border-radius: 50%;
-  background: var(--fg);
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
-  transition: width 0.4s var(--ease-out), height 0.4s var(--ease-out), margin 0.4s var(--ease-out);
+  transition:
+    width 0.4s var(--ease-out),
+    height 0.4s var(--ease-out),
+    margin 0.4s var(--ease-out);
 }
-.archive.is-pressed .drag-cursor {
+.site-cursor.is-pressed {
   width: 14px;
   height: 14px;
   margin: -7px 0 0 -7px;
 }
+/* Over et projekt: større cirkel med tekst indeni. */
+html[data-cursor="project"] .site-cursor {
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  /* Hvid + difference vender farverne bag cirklen om, så teksten altid står i kontrast til billedet. */
+  border-color: #fff;
+  mix-blend-mode: difference;
+}
+.site-cursor-label {
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--fg);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.25s var(--ease-out), transform 0.4s var(--ease-out);
+}
+html[data-cursor="project"] .site-cursor-label {
+  color: #fff;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.1s;
+}
 @media (hover: none) {
-  .drag-cursor {
+  .site-cursor {
     display: none;
   }
 }
@@ -645,13 +679,23 @@ button:hover .roll-inner {
 }
 .preview-meta {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Lige brede kolonner, uanset hvor mange felter projektet har udfyldt. */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: var(--gap);
   padding-top: 12px;
   border-top: 1px solid var(--line);
 }
 .preview-meta dd {
   margin-top: 4px;
+}
+/* Maske til "Visit site", så den glider ind nedefra ligesom de splittede linjer. */
+.preview-link-mask {
+  overflow: hidden;
+}
+.preview-link-line {
+  display: inline-block;
+  will-change: transform;
 }
 @media (min-width: 768px) {
   .preview {

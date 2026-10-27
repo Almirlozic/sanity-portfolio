@@ -23,6 +23,7 @@ export type ProjectSummary = {
   year?: string;
   role?: string;
   excerpt?: string;
+  link?: string;
   coverImage?: SanityImage;
   gallery?: SanityImage[];
 };

@@ -1,3 +1,4 @@
+import SiteCursor from "@/components/SiteCursor";
 import SiteHeader from "@/components/SiteHeader";
 import SmoothScroll from "@/components/SmoothScroll";
 import TimeTheme from "@/components/TimeTheme";
@@ -16,6 +17,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <TimeTheme />
         <SiteHeader projects={projects} />
         <main className="stage">{children}</main>
+        <SiteCursor />
       </div>
     </SmoothScroll>
   );

@@ -13,6 +13,7 @@ const summaryFields = /* groq */ `
   year,
   role,
   excerpt,
+  link,
   coverImage { ${imageFields} }
 `;
 

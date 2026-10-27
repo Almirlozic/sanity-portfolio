@@ -134,7 +134,10 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
             mask: "lines",
             linesClass: "split-line",
           });
-      const lines = split?.lines ?? [];
+      // "Visit site" splittes ikke (det ville ødelægge RollText), men glider ind som en linje.
+      const lines = split
+        ? [...split.lines, ...el.querySelectorAll<HTMLElement>(".preview-link-line")]
+        : [];
 
       // Lås kortets højde, så titlen ikke hopper, når billedet bliver absolute.
       gsap.set(slide, { zIndex: 2, height: slide.offsetHeight });
@@ -528,8 +531,12 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
         if (e.key === "ArrowLeft") scrollBy(-window.innerWidth * GALLERY.keyStep);
       };
       window.addEventListener("keydown", onKey);
+      // Klik på navnet i headeren lukker projektet (se SiteHeader).
+      const onHome = () => close.current();
+      window.addEventListener("site:home", onHome);
 
       return () => {
+        window.removeEventListener("site:home", onHome);
         gsap.ticker.remove(tick);
         window.removeEventListener("resize", onResize);
         window.removeEventListener("keydown", onKey);
@@ -566,7 +573,7 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
             {project.title}
           </h2>
           {project.excerpt && <p className="preview-excerpt preview-split">{project.excerpt}</p>}
-          {meta.length > 0 && (
+          {(meta.length > 0 || project.link) && (
             <dl className="preview-meta mono">
               {meta.map((item) => (
                 <div key={item.label}>
@@ -574,6 +581,21 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
                   <dd className="preview-split">{item.value}</dd>
                 </div>
               ))}
+              {project.link && (
+                <div>
+                  <dt className="muted preview-split">Link</dt>
+                  <dd className="preview-link-mask">
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="preview-link-line"
+                    >
+                      <RollText>Visit site</RollText>
+                    </a>
+                  </dd>
+                </div>
+              )}
             </dl>
           )}
         </div>

@@ -45,6 +45,8 @@ export default function SiteHeader({ projects }: { projects: ProjectSummary[] })
           onClick={() => {
             setOpen(false);
             setHomeClicks((n) => n + 1);
+            // Lukker et åbent projekt på forsiden (se ProjectPreview).
+            window.dispatchEvent(new Event("site:home"));
           }}
         >
           <RollText>{first}</RollText>
