@@ -6,8 +6,10 @@ export const site = {
   title: "Almir Lozic — Designer & udvikler",
   description: "Designer og udvikler, der bygger visuelle, animerede websites.",
   intro:
-    "Designer og udvikler i København. Jeg bygger visuelle, bevægelsesdrevne websites med fokus på detaljen.",
-  location: "København, DK",
+    "Designer and developer. I build visual, motion-driven websites with an eye for detail.",
+  /** Billede af mig under introen på About. Læg filen i /public (fx /portrait.jpg). */
+  portrait: "/IMG_0467.WEBP",
+  location: "Copenhagen, DK",
   email: "hej@ditdomæne.dk",
   socials: [
     { label: "Instagram", href: "https://instagram.com/" },

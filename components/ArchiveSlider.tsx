@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import type { ProjectSummary } from "@/sanity/lib/types";
 
@@ -61,7 +60,12 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
   const cursor = useRef<HTMLDivElement>(null);
   // Mens detaljevisningen er åben, står rækken stille og ignorerer input.
   const paused = useRef(false);
-  const [preview, setPreview] = useState<{ project: ProjectSummary; slide: HTMLElement } | null>(null);
+  const [preview, setPreview] = useState<{
+    project: ProjectSummary;
+    slide: HTMLElement;
+    /** "next": kom fra forrige projekt (scroll videre), så kortet ikke skal flyve ind fra rækken. */
+    from?: "next";
+  } | null>(null);
 
   const copies = Math.max(1, Math.ceil(MIN_SLIDES / projects.length));
   const slides = Array.from({ length: projects.length * copies }, (_, i) => ({
@@ -306,11 +310,8 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
     { scope: root, dependencies: [projects.length] },
   );
 
-  // Et rigtigt klik åbner detaljevisningen på samme side. Træk er allerede
-  // fanget af onClickCapture, og cmd/ctrl-klik åbner stadig linket i en ny fane.
-  const openPreview = (e: React.MouseEvent<HTMLAnchorElement>, project: ProjectSummary) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
+  // Et klik åbner detaljevisningen. Træk er allerede fanget af onClickCapture.
+  const openPreview = (e: React.MouseEvent<HTMLButtonElement>, project: ProjectSummary) => {
     const slide = e.currentTarget.closest<HTMLElement>(".slide");
     // Vent, til introen er færdig.
     if (paused.current || !slide || root.current?.hasAttribute("data-intro")) return;
@@ -324,25 +325,56 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
     setPreview(null);
   };
 
+  // Når detaljevisningen er lukket, ryddes kortene helt, også efter skift mellem flere projekter.
+  // (Ikke ved første visning, hvor introen styrer kortene.)
+  const hadPreview = useRef(false);
+  useLayoutEffect(() => {
+    if (preview) hadPreview.current = true;
+    if (preview || !hadPreview.current || !root.current) return;
+    gsap.set(root.current.querySelectorAll(".slide-media, .slide-label"), { clearProps: "all" });
+  }, [preview]);
+
+  // Næste projekt i rækkefølgen (forfra efter det sidste).
+  const nextProject = (project: ProjectSummary) => {
+    if (projects.length < 2) return undefined;
+    const i = projects.findIndex((p) => p._id === project._id);
+    return projects[(i + 1) % projects.length];
+  };
+
+  // Skift til næste projekt: brug det af dets kort, der ligger tættest på det nuværende.
+  const showNext = () => {
+    if (!preview) return;
+    const next = nextProject(preview.project);
+    const el = root.current;
+    if (!next || !el) return;
+    const origin = preview.slide.getBoundingClientRect().left;
+    const slide = gsap.utils
+      .toArray<HTMLElement>(`.slide[data-project="${next._id}"]`, el)
+      .sort(
+        (a, b) =>
+          Math.abs(a.getBoundingClientRect().left - origin) - Math.abs(b.getBoundingClientRect().left - origin),
+      )[0];
+    if (slide) setPreview({ project: next, slide, from: "next" });
+  };
+
   return (
     <>
       <div ref={root} className="archive" data-lenis-prevent data-preview={preview ? "" : undefined}>
         <ul className="archive-track">
           {slides.map(({ project, index, isCopy }) => (
-            <li key={index} className="slide" aria-hidden={isCopy || undefined}>
-              <Link
-                href={`/projects/${project.slug}`}
+            <li key={index} className="slide" data-project={project._id} aria-hidden={isCopy || undefined}>
+              <button
+                type="button"
                 className="slide-link"
-                draggable={false}
                 onClick={(e) => openPreview(e, project)}
                 tabIndex={isCopy ? -1 : undefined}
               >
-                <p className="slide-label">
+                <span className="slide-label">
                   <RollText>{project.title}</RollText>
-                </p>
-                <div className="slide-media">
-                  <div className="slide-inner">
-                    <div className="slide-img">
+                </span>
+                <span className="slide-media">
+                  <span className="slide-inner">
+                    <span className="slide-img">
                       {project.coverImage && (
                         <SanityImage
                           image={project.coverImage}
@@ -350,16 +382,26 @@ export default function ArchiveSlider({ projects }: { projects: ProjectSummary[]
                           priority={index < 4}
                         />
                       )}
-                    </div>
-                  </div>
-                </div>
-              </Link>
+                    </span>
+                  </span>
+                </span>
+              </button>
             </li>
           ))}
         </ul>
         <div ref={cursor} className="drag-cursor" aria-hidden />
       </div>
-      {preview && <ProjectPreview project={preview.project} slide={preview.slide} onClosed={closePreview} />}
+      {preview && (
+        <ProjectPreview
+          key={preview.project._id}
+          project={preview.project}
+          next={nextProject(preview.project)}
+          slide={preview.slide}
+          from={preview.from}
+          onClosed={closePreview}
+          onNext={showNext}
+        />
+      )}
     </>
   );
 }

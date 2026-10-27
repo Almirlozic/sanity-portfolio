@@ -1,5 +1,3 @@
-import type { PortableTextBlock } from "next-sanity";
-
 export type SanityImage = {
   _type?: "image";
   _key?: string;
@@ -26,11 +24,5 @@ export type ProjectSummary = {
   role?: string;
   excerpt?: string;
   coverImage?: SanityImage;
-};
-
-export type Project = ProjectSummary & {
-  body?: PortableTextBlock[];
   gallery?: SanityImage[];
-  link?: string;
-  next?: ProjectSummary | null;
 };

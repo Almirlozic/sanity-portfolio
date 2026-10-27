@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import type { ProjectSummary } from "@/sanity/lib/types";
@@ -150,15 +149,13 @@ export default function ArchivePanel({ projects }: { projects: ProjectSummary[] 
                 } as React.CSSProperties
               }
             >
-              <Link href={`/projects/${project.slug}`} className="archive-item-link" draggable={false}>
-                {project.coverImage && (
-                  <SanityImage
-                    image={project.coverImage}
-                    sizes="(min-width: 768px) 40vw, 65vw"
-                    alt={project.title}
-                  />
-                )}
-              </Link>
+              {project.coverImage && (
+                <SanityImage
+                  image={project.coverImage}
+                  sizes="(min-width: 768px) 40vw, 65vw"
+                  alt={project.title}
+                />
+              )}
             </li>
           ))}
         </ul>

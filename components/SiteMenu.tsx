@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import { site } from "@/lib/site";
@@ -292,10 +293,15 @@ export default function SiteMenu({ open, onClose, resetKey, projects }: Props) {
         data-lenis-prevent
       >
         <div className="profile-inner">
-          <p className="profile-intro">{site.intro}</p>
+          <div className="profile-top">
+            <p className="profile-intro">{site.intro}</p>
+            <div className="profile-portrait">
+              <Image src={site.portrait} alt={site.name} fill sizes="(min-width: 768px) 20vw, 50vw" />
+            </div>
+          </div>
           <div className="profile-cols">
             <div>
-              <p className="muted">Kontakt</p>
+              <p className="muted">Contact</p>
               <p>
                 <a href={`mailto:${site.email}`}>
                   <RollText>{site.email}</RollText>
@@ -303,11 +309,11 @@ export default function SiteMenu({ open, onClose, resetKey, projects }: Props) {
               </p>
             </div>
             <div>
-              <p className="muted">Lokation</p>
+              <p className="muted">Location</p>
               <p>{site.location}</p>
             </div>
             <div>
-              <p className="muted">Andre steder</p>
+              <p className="muted">Elsewhere</p>
               {site.socials.map((s) => (
                 <p key={s.label}>
                   <a href={s.href} target="_blank" rel="noreferrer">

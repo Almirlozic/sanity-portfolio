@@ -64,17 +64,9 @@ html.lenis body {
   color: var(--muted);
 }
 
-/* Tekst der animeres ind: skjult indtil JS har splittet den. */
-.split-reveal {
-  visibility: hidden;
-}
+/* Linjer, der animeres ind (SplitText). */
 .split-line {
   will-change: transform;
-}
-@media (prefers-reduced-motion: reduce) {
-  .split-reveal {
-    visibility: visible;
-  }
 }
 
 /* ---------- Rulle-tekst ved hover ---------- */
@@ -103,17 +95,6 @@ button:hover .roll-inner {
   .roll-inner {
     transition: none;
   }
-}
-
-.underline-link,
-.footer-bottom a {
-  background: linear-gradient(currentColor, currentColor) no-repeat 100% 100% / 0 1px;
-  transition: background-size 0.6s var(--ease-out);
-}
-.underline-link:hover,
-.footer-bottom a:hover {
-  background-position: 0 100%;
-  background-size: 100% 1px;
 }
 
 /* ---------- Header ---------- */
@@ -321,11 +302,6 @@ button:hover .roll-inner {
   overflow: hidden;
   background: var(--card);
 }
-.archive-item-link {
-  display: block;
-  height: 100%;
-  -webkit-user-drag: none;
-}
 .archive-item img {
   pointer-events: none;
 }
@@ -371,9 +347,25 @@ button:hover .roll-inner {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 64px;
   padding: 120px var(--gutter) var(--gutter);
+}
+/* Intro og billede øverst til venstre, kontaktinfo nederst. */
+.profile-top {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.profile-portrait {
+  position: relative;
+  width: clamp(160px, 20vw, 300px);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--card);
+}
+.profile-portrait img {
+  object-fit: cover;
 }
 .profile-intro {
   max-width: 24ch;
@@ -422,9 +414,12 @@ button:hover .roll-inner {
 }
 .slide-link {
   display: block;
+  width: 100%;
+  text-align: left;
   -webkit-user-drag: none;
 }
 .slide-label {
+  display: block;
   overflow: hidden;
   margin-bottom: 8px;
   font-size: 12px;
@@ -432,6 +427,7 @@ button:hover .roll-inner {
   text-transform: uppercase;
 }
 .slide-media {
+  display: block;
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
@@ -533,6 +529,87 @@ button:hover .roll-inner {
   grid-row: 1;
   min-height: 0;
 }
+/* Galleriet: en vandret række, der starter med en kopi af coverbilledet.
+   Rækkens placering og højde sættes i JS, så kopien ligger præcis på .preview-slot. */
+.preview-scroll {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+}
+.preview-track {
+  position: absolute;
+  left: 0;
+  display: flex;
+  gap: var(--gap);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+}
+.preview-cover,
+.preview-gallery-item {
+  position: relative;
+  flex: none;
+  height: 100%;
+  overflow: hidden;
+  background: var(--card);
+  pointer-events: auto;
+}
+.preview-track img {
+  pointer-events: none;
+}
+/* Samme zoom som .slide-img, så kopien ligner det flyttede billede præcis. */
+.preview-cover-img {
+  position: absolute;
+  inset: 0;
+  transform: scale(1.15);
+}
+/* Sidst i rækken: næste projekt. Stregen fyldes, mens man scroller videre. */
+.preview-next {
+  position: relative;
+  flex: none;
+  width: min(80vw, 520px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 0 0 clamp(24px, 4vw, 64px);
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.preview-next-title {
+  font-size: clamp(36px, 5vw, 88px);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+.preview-next-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.preview-next-bar {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: 1px;
+  background: var(--line);
+}
+.preview-next-fill {
+  display: block;
+  height: 100%;
+  background: var(--fg);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.preview-progress {
+  position: absolute;
+  font-variant-numeric: tabular-nums;
+}
 .preview-info {
   grid-row: 2;
   display: flex;
@@ -543,6 +620,9 @@ button:hover .roll-inner {
   pointer-events: auto;
 }
 .preview-close {
+  /* Over galleriet, så den kan klikkes, mens rækken ligger hen over den. */
+  position: relative;
+  z-index: 1;
   align-self: flex-start;
   cursor: pointer;
 }
@@ -560,7 +640,7 @@ button:hover .roll-inner {
 .preview-excerpt {
   max-width: 38ch;
   font-size: clamp(16px, 1.4vw, 22px);
-  line-height: 1.2;
+  line-height: 1.45;
   letter-spacing: -0.01em;
 }
 .preview-meta {
@@ -572,9 +652,6 @@ button:hover .roll-inner {
 }
 .preview-meta dd {
   margin-top: 4px;
-}
-.preview-link {
-  display: inline-block;
 }
 @media (min-width: 768px) {
   .preview {
@@ -589,8 +666,12 @@ button:hover .roll-inner {
   .preview-info {
     grid-column: 1;
     grid-row: 1;
-    justify-content: space-between;
     padding-top: 104px;
+  }
+  /* Titel og tekst står lidt under "Luk", med luft ind mod billedet i højre side. */
+  .preview-text {
+    margin-top: 8vh;
+    padding-right: 96px;
   }
 }
 
@@ -606,144 +687,4 @@ button:hover .roll-inner {
 }
 .empty a {
   text-decoration: underline !important;
-}
-
-/* ---------- Projektside ---------- */
-.parallax {
-  position: relative;
-  overflow: hidden;
-  background: var(--card);
-}
-.project-loading {
-  min-height: 100svh;
-}
-.project-header {
-  padding: clamp(120px, 22vh, 220px) var(--gutter) 40px;
-}
-.back-link {
-  display: inline-block;
-  margin-bottom: 24px;
-  transition: color 0.3s;
-}
-.back-link:hover {
-  color: var(--fg);
-}
-.project-title {
-  font-size: clamp(44px, 7vw, 120px);
-  line-height: 0.95;
-  letter-spacing: -0.045em;
-  font-weight: 400;
-}
-.project-meta {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px var(--gap);
-  margin-top: 40px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-  font-size: 12px;
-  text-transform: uppercase;
-}
-.project-meta p + p {
-  margin-top: 4px;
-}
-@media (min-width: 768px) {
-  .project-meta {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-.project-cover {
-  height: min(100svh, 62vw);
-  margin: 0 var(--gutter);
-}
-.project-text {
-  display: grid;
-  gap: 32px;
-  padding: clamp(80px, 12vw, 180px) var(--gutter);
-}
-@media (min-width: 768px) {
-  .project-text {
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--gap);
-  }
-  .project-lead {
-    grid-column: 1 / span 2;
-  }
-  .project-body {
-    grid-column: 3 / span 2;
-    padding-top: 6px;
-  }
-}
-.project-lead {
-  font-size: clamp(22px, 2.2vw, 34px);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-.project-body {
-  max-width: 52ch;
-  color: var(--muted);
-  line-height: 1.5;
-}
-.project-body p + p {
-  margin-top: 1em;
-}
-.gallery {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--gap);
-  padding: 0 var(--gutter);
-}
-@media (min-width: 768px) {
-  .gallery {
-    grid-template-columns: 1fr 1fr;
-  }
-  .gallery-item--full {
-    grid-column: 1 / -1;
-  }
-}
-.next-project {
-  display: block;
-  padding: clamp(120px, 14vw, 220px) var(--gutter) 120px;
-  text-align: center;
-}
-.next-title {
-  font-size: clamp(44px, 7vw, 120px);
-  line-height: 0.95;
-  letter-spacing: -0.045em;
-  margin-top: 12px;
-}
-.next-media {
-  width: min(420px, 70vw);
-  aspect-ratio: 4 / 5;
-  margin: 40px auto 0;
-}
-
-/* ---------- Footer ---------- */
-.site-footer {
-  padding: 120px var(--gutter) var(--gutter);
-  border-top: 1px solid var(--line);
-}
-.footer-mail {
-  display: block;
-  margin: 12px 0 96px;
-  font-size: clamp(32px, 5.5vw, 96px);
-  line-height: 1;
-  letter-spacing: -0.045em;
-  transition: opacity 0.4s;
-}
-.footer-mail:hover {
-  opacity: 0.5;
-}
-.footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  font-size: 12px;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.footer-bottom ul {
-  display: flex;
-  gap: 20px;
 }
