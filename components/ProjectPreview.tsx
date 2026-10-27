@@ -110,12 +110,15 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
         .filter((s) => s !== slide)
         .sort(
           (a, b) =>
-            Math.abs(a.getBoundingClientRect().left - origin) - Math.abs(b.getBoundingClientRect().left - origin),
+            Math.abs(a.getBoundingClientRect().left - origin) -
+            Math.abs(b.getBoundingClientRect().left - origin),
         );
       const labels = [slide, ...others]
         .map((s) => s.querySelector<HTMLElement>(".slide-label"))
         .filter(Boolean) as HTMLElement[];
-      const shrinks = others.map((s) => s.querySelector<HTMLElement>(".slide-media")).filter(Boolean) as HTMLElement[];
+      const shrinks = others
+        .map((s) => s.querySelector<HTMLElement>(".slide-media"))
+        .filter(Boolean) as HTMLElement[];
       const fades = [...labels, ...shrinks];
 
       // Sliderens værdier, så billedet lander præcis, som det var.
@@ -157,7 +160,16 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
         fit();
         open = gsap.timeline().set(el, { autoAlpha: 1 });
         if (!reduceMotion) {
-          open.from(lines, { yPercent: 110, duration: TIMING.text, ease: TIMING.textEase, stagger: TIMING.textStagger }, 0.2);
+          open.from(
+            lines,
+            {
+              yPercent: 110,
+              duration: TIMING.text,
+              ease: TIMING.textEase,
+              stagger: TIMING.textStagger,
+            },
+            0.2,
+          );
         }
       } else if (reduceMotion) {
         open = gsap
@@ -175,17 +187,44 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
         open = gsap
           .timeline()
           .set(el, { autoAlpha: 1 })
-          .to(shrinks, { scale: 0, duration: TIMING.shrink, ease: TIMING.shrinkEase, stagger: TIMING.shrinkStagger }, 0)
-          .to(labels, { autoAlpha: 0, duration: TIMING.fade, ease: "power2.out", stagger: TIMING.shrinkStagger }, 0)
+          .to(
+            shrinks,
+            {
+              scale: 0,
+              duration: TIMING.shrink,
+              ease: TIMING.shrinkEase,
+              stagger: TIMING.shrinkStagger,
+            },
+            0,
+          )
+          .to(
+            labels,
+            {
+              autoAlpha: 0,
+              duration: TIMING.fade,
+              ease: "power2.out",
+              stagger: TIMING.shrinkStagger,
+            },
+            0,
+          )
           .to(inner, { scale: 1, duration: TIMING.move, ease: TIMING.moveEase }, 0)
           .to(image, { xPercent: 0, duration: TIMING.move, ease: TIMING.moveEase }, 0)
           .add(fit(TIMING.move) ?? [], 0.15)
           .from(
             lines,
-            { yPercent: 110, duration: TIMING.text, ease: TIMING.textEase, stagger: TIMING.textStagger },
+            {
+              yPercent: 110,
+              duration: TIMING.text,
+              ease: TIMING.textEase,
+              stagger: TIMING.textStagger,
+            },
             "-=0.5",
           )
-          .from(closeButton.current, { autoAlpha: 0, duration: TIMING.fade, ease: "power2.out" }, "<");
+          .from(
+            closeButton.current,
+            { autoAlpha: 0, duration: TIMING.fade, ease: "power2.out" },
+            "<",
+          );
       }
       open.add(() => closeButton.current?.focus({ preventScroll: true }));
 
@@ -224,7 +263,8 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
         if (textBeside) {
           gsap.set(text, {
             x: -scroll.current,
-            opacity: 1 - gsap.utils.clamp(0, 1, scroll.current / (window.innerWidth * GALLERY.textFade)),
+            opacity:
+              1 - gsap.utils.clamp(0, 1, scroll.current / (window.innerWidth * GALLERY.textFade)),
           });
         }
         if (progress.current) {
@@ -250,7 +290,8 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
         // For enden: scroll videre fylder stregen mod næste projekt i stedet for at flytte rækken.
         if (next && delta > 0 && scroll.target >= scroll.max - 1) {
           // Først når rækken har ligget stille ved enden lidt, så et hurtigt scroll ikke springer et projekt over.
-          if (!over.atEndSince || performance.now() - over.atEndSince < GALLERY.nextDelay * 1000) return;
+          if (!over.atEndSince || performance.now() - over.atEndSince < GALLERY.nextDelay * 1000)
+            return;
           over.lastInput = performance.now();
           over.value = Math.min(GALLERY.nextThreshold, over.value + delta);
           if (over.value >= GALLERY.nextThreshold) goNext.current();
@@ -303,13 +344,21 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
         showGallery(true);
         // Ingen scroll, før det nye projekt er gledet ind (ellers fortsætter hjulets fart herinde).
         galleryOn = false;
-        open.add(() => {
-          galleryOn = true;
-        }, reduceMotion ? 0 : GALLERY.switchIn * 0.6);
+        open.add(
+          () => {
+            galleryOn = true;
+          },
+          reduceMotion ? 0 : GALLERY.switchIn * 0.6,
+        );
         if (!reduceMotion) {
           open.from(
             scroller.current,
-            { x: window.innerWidth * 0.3, opacity: 0, duration: GALLERY.switchIn, ease: "expo.out" },
+            {
+              x: window.innerWidth * 0.3,
+              opacity: 0,
+              duration: GALLERY.switchIn,
+              ease: "expo.out",
+            },
             0,
           );
         }
@@ -356,13 +405,22 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
         open.kill();
         const out = gsap.timeline({ onComplete: onNext });
         if (reduceMotion) {
-          out.to([scroller.current, text], { autoAlpha: 0, duration: TIMING.reducedFade, ease: "none" });
+          out.to([scroller.current, text], {
+            autoAlpha: 0,
+            duration: TIMING.reducedFade,
+            ease: "none",
+          });
           return;
         }
         out
           .to(
             scroller.current,
-            { x: -window.innerWidth * 0.3, opacity: 0, duration: GALLERY.switchOut, ease: "power3.in" },
+            {
+              x: -window.innerWidth * 0.3,
+              opacity: 0,
+              duration: GALLERY.switchOut,
+              ease: "power3.in",
+            },
             0,
           )
           .to(
@@ -419,7 +477,11 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
       const closeAnimated = () => {
         gsap
           .timeline()
-          .to(closeButton.current, { autoAlpha: 0, duration: TIMING.textOut, ease: "power2.out" }, 0)
+          .to(
+            closeButton.current,
+            { autoAlpha: 0, duration: TIMING.textOut, ease: "power2.out" },
+            0,
+          )
           .to(
             lines,
             {
@@ -438,12 +500,22 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
               .to(image, { xPercent: saved.shift, duration: TIMING.move, ease: TIMING.moveEase }, 0)
               .to(
                 [...shrinks].reverse(),
-                { scale: 1, duration: TIMING.shrink, ease: TIMING.shrinkEase, stagger: TIMING.shrinkStagger },
+                {
+                  scale: 1,
+                  duration: TIMING.shrink,
+                  ease: TIMING.shrinkEase,
+                  stagger: TIMING.shrinkStagger,
+                },
                 TIMING.move * 0.45,
               )
               .to(
                 [...labels].reverse(),
-                { autoAlpha: 1, duration: TIMING.fade, ease: "power2.out", stagger: TIMING.shrinkStagger },
+                {
+                  autoAlpha: 1,
+                  duration: TIMING.fade,
+                  ease: "power2.out",
+                  stagger: TIMING.shrinkStagger,
+                },
                 TIMING.move * 0.6,
               );
           });
@@ -480,7 +552,12 @@ export default function ProjectPreview({ project, next, slide, from, onClosed, o
   return (
     <div ref={root} className="preview" role="dialog" aria-labelledby="preview-title">
       <div className="preview-info">
-        <button ref={closeButton} type="button" className="preview-close mono" onClick={() => close.current()}>
+        <button
+          ref={closeButton}
+          type="button"
+          className="preview-close mono"
+          onClick={() => close.current()}
+        >
           <RollText>Luk</RollText>
         </button>
 
