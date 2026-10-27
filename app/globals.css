@@ -122,7 +122,7 @@ button:hover .roll-inner {
   inset: 0 0 auto 0;
   z-index: 60;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--gap);
   padding: var(--gutter);
   font-size: 12px;
@@ -152,8 +152,9 @@ button:hover .roll-inner {
 .topbar-col button:hover {
   color: var(--fg);
 }
+/* Navn til venstre, links i midten (til højre på mobil), tid til højre. */
 .topbar-links {
-  grid-column: 3;
+  justify-self: end;
 }
 .topbar-links a,
 .topbar-links button {
@@ -164,10 +165,14 @@ button:hover .roll-inner {
 }
 @media (min-width: 768px) {
   .topbar {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .topbar-links {
+    justify-self: center;
   }
   .topbar-time {
     display: flex;
+    justify-self: end;
   }
 }
 .local-time {
@@ -439,6 +444,13 @@ button:hover .roll-inner {
   .slide-link:hover .slide-media {
     transform: translateY(-10px);
   }
+}
+/* Under introen styrer GSAP kortene; hover-effekten må ikke kæmpe imod. */
+.archive[data-intro] .slide-media {
+  transition: none;
+}
+.archive[data-intro] .slide-link {
+  pointer-events: none;
 }
 .archive.is-dragging .slide-link .slide-media,
 .archive.is-moving .slide-link .slide-media,
