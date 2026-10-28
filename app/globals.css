@@ -343,45 +343,153 @@ button:hover .roll-inner {
 }
 
 /* About */
-.profile-inner {
+/* ---------- About: tre kort (AboutPanel) ---------- */
+.about {
+  --about-gap: clamp(24px, 3vw, 48px);
+  position: relative;
   min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 64px;
   padding: 120px var(--gutter) var(--gutter);
 }
-/* Intro og billede øverst til venstre, kontaktinfo nederst. */
-.profile-top {
+/* Billedet fra det aktive kort fylder hele siden bag kortene. */
+.about-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.about-bg-img {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 0.9s var(--ease-out),
+    transform 1.6s var(--ease-out);
+}
+.about-bg-img.is-on {
+  opacity: 1;
+  transform: none;
+}
+.about-bg-img img {
+  object-fit: cover;
+}
+.about-cards {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 48px var(--about-gap);
+}
+.about-card {
+  outline: none;
+  cursor: default;
+}
+.about-card-head {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  margin-bottom: 16px;
+  font-size: clamp(20px, 1.9vw, 30px);
+  font-weight: inherit;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
-.profile-portrait {
+.about-card-media {
   position: relative;
-  width: clamp(160px, 20vw, 300px);
   aspect-ratio: 4 / 5;
   overflow: hidden;
   background: var(--card);
 }
-.profile-portrait img {
+.about-card-media img {
   object-fit: cover;
 }
-.profile-intro {
-  max-width: 24ch;
-  font-size: clamp(28px, 3.4vw, 52px);
-  line-height: 1.05;
+/* Baggrund og tekst, der kommer blødt frem ved hover. */
+.about-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  overflow-y: auto;
+  /* Fast baggrund, der ruller ned oppefra. */
+  background: var(--bg);
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 1.2s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.about-card.is-active .about-card-overlay {
+  clip-path: inset(0);
+}
+/* Titlen øverst på kortet. */
+.about-card-title {
+  margin-bottom: 24px;
+  font-size: clamp(32px, 3.6vw, 56px);
+  line-height: 1;
   letter-spacing: -0.03em;
 }
-.profile-cols {
+/* Teksten står nederst på kortet, men kan stadig scrolles, hvis den er for lang. */
+.about-card-title + .about-card-line {
+  margin-top: auto;
+}
+.about-card-line {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.4s var(--ease-out),
+    transform 0.6s var(--ease-out);
+}
+.about-card.is-active .about-card-line {
+  opacity: 1;
+  transform: none;
+  transition-duration: 0.9s, 1.4s;
+  /* Linjerne kommer én efter én, når baggrunden er næsten nede. */
+  transition-delay: calc(0.6s + var(--i) * 0.12s);
+}
+.about-card-text {
+  font-size: clamp(14px, 1.1vw, 17px);
+  line-height: 1.45;
+}
+/* Punktliste, hvor lange punkter brydes pænt ind under teksten. */
+.about-card-bullet {
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+  font-size: clamp(14px, 1.1vw, 17px);
+  line-height: 1.35;
+}
+.about-card-bullet::before {
+  content: "•";
+  display: inline-block;
+  width: 1.2em;
+  text-indent: 0;
+}
+.about-card-exp {
   display: grid;
-  gap: 24px var(--gap);
+  grid-template-columns: 1fr 2fr;
+  gap: var(--gap);
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
   font-size: 12px;
   text-transform: uppercase;
 }
+.about-card-tools {
+  font-size: 12px;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
 @media (min-width: 768px) {
-  .profile-cols {
-    grid-template-columns: repeat(4, 1fr);
+  /* Kortene er så store som muligt, men altid inden for skærmens højde. */
+  /* Kortene står i midten af skærmen, både vandret og lodret. */
+  .about {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 96px var(--gutter);
+  }
+  .about-cards {
+    --about-card-w: min(
+      calc((100vw - var(--gutter) * 2 - var(--about-gap) * 2) / 3),
+      calc((100svh - 280px) * 0.8)
+    );
+    grid-template-columns: repeat(3, var(--about-card-w));
   }
 }
 

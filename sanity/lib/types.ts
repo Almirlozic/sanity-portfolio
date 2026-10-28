@@ -27,3 +27,13 @@ export type ProjectSummary = {
   coverImage?: SanityImage;
   gallery?: SanityImage[];
 };
+
+export type About = {
+  intro?: string;
+  portrait?: SanityImage;
+  cardImages?: SanityImage[];
+  bio?: string;
+  services?: string[];
+  tools?: string[];
+  experience?: { _key: string; period?: string; role: string; place?: string }[];
+};
