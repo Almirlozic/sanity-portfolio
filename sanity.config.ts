@@ -15,6 +15,25 @@ export default defineConfig({
   title: "Portfolio",
   projectId,
   dataset,
-  schema: { types: schemaTypes },
-  plugins: [structureTool(), visionTool({ defaultApiVersion: apiVersion })],
+  schema: {
+    types: schemaTypes,
+    // About findes kun én gang, så den kan ikke oprettes som nyt dokument.
+    templates: (templates) => templates.filter((t) => t.schemaType !== "about"),
+  },
+  plugins: [
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title("Indhold")
+          .items([
+            S.listItem()
+              .title("About")
+              .id("about")
+              .child(S.document().schemaType("about").documentId("about")),
+            S.divider(),
+            ...S.documentTypeListItems().filter((item) => item.getId() !== "about"),
+          ]),
+    }),
+    visionTool({ defaultApiVersion: apiVersion }),
+  ],
 });

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { site } from "@/lib/site";
-import type { ProjectSummary } from "@/sanity/lib/types";
+import type { About, ProjectSummary } from "@/sanity/lib/types";
 
 import LocalTime from "./LocalTime";
 import RollText from "./RollText";
@@ -14,7 +14,7 @@ import SiteMenu from "./SiteMenu";
 /**
  * Header i et enkelt grid: navn, menu/kontakt og lokal tid.
  */
-export default function SiteHeader({ projects }: { projects: ProjectSummary[] }) {
+export default function SiteHeader({ projects, about }: { projects: ProjectSummary[]; about: About }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [first, ...rest] = site.name.split(" ");
@@ -55,7 +55,7 @@ export default function SiteHeader({ projects }: { projects: ProjectSummary[] })
 
         <div className="topbar-col topbar-links">
           <button type="button" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen((v) => !v)}>
-            <RollText>{open ? "Luk" : "Menu"}</RollText>
+            <RollText>{open ? "Close" : "Menu"}</RollText>
           </button>
           <a href={`mailto:${site.email}`}>
             <RollText>Contact</RollText>
@@ -73,6 +73,7 @@ export default function SiteHeader({ projects }: { projects: ProjectSummary[] })
         onClose={() => setOpen(false)}
         resetKey={`${pathname}:${homeClicks}`}
         projects={projects}
+        about={about}
       />
     </>
   );

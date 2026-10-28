@@ -1,14 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-import { site } from "@/lib/site";
-import type { ProjectSummary } from "@/sanity/lib/types";
+import type { About, ProjectSummary } from "@/sanity/lib/types";
 
 import { gsap } from "./gsap";
+import AboutPanel from "./AboutPanel";
 import ArchivePanel from "./ArchivePanel";
-import RollText from "./RollText";
 import { useLenis } from "./SmoothScroll";
 
 /*
@@ -36,6 +34,9 @@ const TIMING = {
   zoomEase: "expo.inOut",
   /** De andre bokse og titler forsvinder, når man vælger. */
   out: 0.5,
+  /** Klik på navnet fra archive/about: panelet glider op og viser forsiden. */
+  home: 1.2,
+  homeEase: "expo.inOut",
   /** Ved prefers-reduced-motion: kun en kort fade. */
   reducedFade: 0.3,
 };
@@ -45,12 +46,13 @@ const SCREENS = ["cases", "archive", "about"];
 type Props = {
   open: boolean;
   onClose: () => void;
-  /** Ændres ved sideskift / klik på navnet: alt nulstilles med det samme. */
+  /** Ændres ved sideskift / klik på navnet: tilbage til forsiden. */
   resetKey: string;
   projects: ProjectSummary[];
+  about: About;
 };
 
-export default function SiteMenu({ open, onClose, resetKey, projects }: Props) {
+export default function SiteMenu({ open, onClose, resetKey, projects, about }: Props) {
   const root = useRef<HTMLDivElement>(null);
   const panels = useRef<(HTMLElement | null)[]>([]);
   const boxes = useRef<(HTMLButtonElement | null)[]>([]);
@@ -63,6 +65,60 @@ export default function SiteMenu({ open, onClose, resetKey, projects }: Props) {
     savedY: 0,
     tl: null as gsap.core.Timeline | null,
   });
+
+  // Sideskift eller klik på navnet: tilbage til forsiden.
+  // Står man på archive eller about, glider panelet op og væk. Er menuen åben,
+  // zoomer forsidens boks op. Ellers nulstilles alt med det samme.
+  // Skal ligge før effekten nedenfor, så den kører først.
+  useEffect(() => {
+    const s = state.current;
+    const stage = document.querySelector<HTMLElement>(".stage");
+    if (s.current === 0 && !s.shown && !s.locked) return;
+
+    // Menuen er åben: vælg forsiden, så menuen zoomer "cases" op (effekten nedenfor
+    // kører bagefter, fordi menuen samtidig lukkes).
+    if (s.shown) {
+      s.current = 0;
+      return;
+    }
+
+    const panel = panels.current[s.current];
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (panel && !s.shown && !s.tl?.isActive() && !reduceMotion) {
+      const finish = () => {
+        gsap.set(panel, { clearProps: "clipPath,visibility,zIndex" });
+        gsap.set(panel.firstElementChild, { clearProps: "transform" });
+        document.documentElement.style.overflow = "";
+        lenis?.start();
+        s.current = 0;
+        setCurrent(0);
+      };
+      s.tl = gsap
+        .timeline({ onComplete: finish })
+        .fromTo(
+          panel,
+          { clipPath: "inset(0% 0% 0% 0%)" },
+          { clipPath: "inset(0% 0% 100% 0%)", duration: TIMING.home, ease: TIMING.homeEase },
+        )
+        .to(panel.firstElementChild, { yPercent: -15, duration: TIMING.home, ease: TIMING.homeEase }, 0);
+      return;
+    }
+
+    s.tl?.kill();
+    gsap.set([stage, ...panels.current].filter(Boolean), {
+      clearProps: "transform,transformOrigin,clipPath,opacity,visibility,zIndex,position,top,left,width",
+    });
+    gsap.set(root.current, { autoAlpha: 0 });
+    gsap.set("[data-menu-hide]", { clearProps: "opacity,visibility" });
+    const site = document.querySelector<HTMLElement>(".site");
+    if (site) delete site.dataset.menu;
+    document.documentElement.style.overflow = "";
+    lenis?.start();
+    s.shown = false;
+    s.locked = false;
+    s.current = 0;
+    setCurrent(0);
+  }, [resetKey, lenis]);
 
   useEffect(() => {
     const s = state.current;
@@ -220,27 +276,6 @@ export default function SiteMenu({ open, onClose, resetKey, projects }: Props) {
     return () => window.removeEventListener("resize", onResize);
   }, [open, lenis]);
 
-  // Sideskift eller klik på navnet: tilbage til siden med det samme, uden animation.
-  useEffect(() => {
-    const s = state.current;
-    const stage = document.querySelector<HTMLElement>(".stage");
-    if (s.current === 0 && !s.shown && !s.locked) return;
-    s.tl?.kill();
-    gsap.set([stage, ...panels.current].filter(Boolean), {
-      clearProps: "transform,transformOrigin,clipPath,opacity,visibility,zIndex,position,top,left,width",
-    });
-    gsap.set(root.current, { autoAlpha: 0 });
-    gsap.set("[data-menu-hide]", { clearProps: "opacity,visibility" });
-    const site = document.querySelector<HTMLElement>(".site");
-    if (site) delete site.dataset.menu;
-    document.documentElement.style.overflow = "";
-    lenis?.start();
-    s.shown = false;
-    s.locked = false;
-    s.current = 0;
-    setCurrent(0);
-  }, [resetKey, lenis]);
-
   const select = (i: number) => {
     state.current.current = i;
     onClose();
@@ -292,38 +327,7 @@ export default function SiteMenu({ open, onClose, resetKey, projects }: Props) {
         tabIndex={-1}
         data-lenis-prevent
       >
-        <div className="profile-inner">
-          <div className="profile-top">
-            <p className="profile-intro">{site.intro}</p>
-            <div className="profile-portrait">
-              <Image src={site.portrait} alt={site.name} fill sizes="(min-width: 768px) 20vw, 50vw" />
-            </div>
-          </div>
-          <div className="profile-cols">
-            <div>
-              <p className="muted">Contact</p>
-              <p>
-                <a href={`mailto:${site.email}`}>
-                  <RollText>{site.email}</RollText>
-                </a>
-              </p>
-            </div>
-            <div>
-              <p className="muted">Location</p>
-              <p>{site.location}</p>
-            </div>
-            <div>
-              <p className="muted">Elsewhere</p>
-              {site.socials.map((s) => (
-                <p key={s.label}>
-                  <a href={s.href} target="_blank" rel="noreferrer">
-                    <RollText>{s.label}</RollText>
-                  </a>
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
+        <AboutPanel about={about} active={current === 2} />
       </section>
     </>
   );
